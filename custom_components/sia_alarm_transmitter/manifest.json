@@ -1,0 +1,9 @@
+{
+    "domain": "sia_alarm_integration",
+    "name": "SIA Alarm Integration",
+    "config_flow": true,
+    "documentation": "https://example.com/docs",
+    "requirements": ["voluptuous"],
+    "codeowners": ["@yourgithubusername"],
+    "version": "1.2.0"
+}
