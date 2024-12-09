@@ -1,6 +1,7 @@
-# SIA Alarm Integration for Home Assistant
+# SIA Alarm Transmitter for Home Assistant
 
 ## Features
+- Enable transmssion of event by Home assistant to an Alarm supervision system using the SIA protocol.
 - Primary and backup alarm monitoring hosts
 - TLS parameter support
 - Configurable protocol settings
