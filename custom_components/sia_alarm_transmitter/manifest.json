@@ -1,6 +1,6 @@
 {
-    "domain": "sia_alarm_integration",
-    "name": "SIA Alarm Integration",
+    "domain": "sia_alarm_transmitter",
+    "name": "SIA Alarm Transmitter",
     "config_flow": true,
     "documentation": "https://example.com/docs",
     "requirements": ["voluptuous"],

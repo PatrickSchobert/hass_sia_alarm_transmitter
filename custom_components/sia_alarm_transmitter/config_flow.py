@@ -1,4 +1,4 @@
-"""Configuration flow for SIA Alarm Integration."""
+"""Configuration flow for SIA Alarm Transmitter."""
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigFlow, OptionsFlow
@@ -6,7 +6,7 @@ from homeassistant.core import callback
 from .const import DOMAIN, DEFAULT_PORT
 
 class SIAConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle SIA integration configuration."""
+    """Handle SIA Transmitter configuration."""
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
@@ -45,13 +45,13 @@ class SIAConfigFlow(ConfigFlow, domain=DOMAIN):
         return SIAOptionsFlow(config_entry)
 
 class SIAOptionsFlow(OptionsFlow):
-    """Options flow for SIA integration."""
+    """Options flow for SIA Transmitter."""
     def __init__(self, config_entry):
         """Initialize options flow."""
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
-        """Manage integration options."""
+        """Manage Transmitter options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 

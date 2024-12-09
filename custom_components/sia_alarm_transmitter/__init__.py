@@ -1,10 +1,10 @@
-"""Home Assistant SIA Alarm Integration"""
+"""Home Assistant SIA Alarm Transmitter"""
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from .const import DOMAIN
 
 async def async_setup(hass: HomeAssistant, config):
-    """Set up the SIA Alarm Integration."""
+    """Set up the SIA Alarm Transmitter."""
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
