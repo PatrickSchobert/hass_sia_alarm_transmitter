@@ -5,5 +5,5 @@
     "documentation": "https://github.com/jdelaporte13/hass_sia_alarm_transmitter",
     "requirements": ["voluptuous"],
     "codeowners": ["@jdelaporte13"],
-    "version": "1.0.0"
+    "version": "1.0.1"
 }
