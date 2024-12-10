@@ -16,7 +16,8 @@ class SIAProtocolHandler:
                  retry_attempts=2,
                  protocol_number='6678',
                  station_id='0000',
-                 subscriber_id='0000'):
+                 subscriber_id='0000',
+                 account_code='1234556'):
         """
         Initialize SIA protocol handler with TLS parameters.
         
