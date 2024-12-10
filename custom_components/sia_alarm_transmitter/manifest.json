@@ -2,8 +2,8 @@
     "domain": "sia_alarm_transmitter",
     "name": "SIA Alarm Transmitter",
     "config_flow": true,
-    "documentation": "https://example.com/docs",
+    "documentation": "https://github.com/jdelaporte13/hass_sia_alarm_transmitter",
     "requirements": ["voluptuous"],
-    "codeowners": ["@yourgithubusername"],
+    "codeowners": ["@jdelaporte13"],
     "version": "1.0.0"
 }

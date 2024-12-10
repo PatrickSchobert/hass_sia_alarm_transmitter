@@ -32,6 +32,7 @@ class SIAProtocolHandler:
         self.protocol_number = protocol_number
         self.station_id = station_id
         self.subscriber_id = subscriber_id
+        self.account_code = account_code
 
     async def send_sia_message(self, event_code, account_code, message):
         """
@@ -43,7 +44,7 @@ class SIAProtocolHandler:
             f"01{len(message):02d}{event_code}0]",  # Standard SIA header
             f"R{self.station_id}",          # Station/Receiver ID
             f"S{self.subscriber_id}",       # Subscriber ID
-            f"{account_code}",              # Account code
+            f"{self.account_code}",              # Account code
             f"{message}"                    # Message content
         ]
         
