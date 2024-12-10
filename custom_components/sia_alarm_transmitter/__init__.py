@@ -20,7 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         backup_port=entry.data.get('backup_port', 5051),
         protocol_number=entry.data.get('protocol_number', '6678'),
         station_id=entry.data.get('station_id', '0000'),
-        subscriber_id=entry.data.get('subscriber_id', '0000')
+        subscriber_id=entry.data.get('subscriber_id', '0000'),
         account_code=entry.data.get('account_code', '9999')
     )
     
