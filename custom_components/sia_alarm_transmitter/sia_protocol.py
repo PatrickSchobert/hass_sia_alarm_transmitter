@@ -37,27 +37,26 @@ class SIAProtocolHandler:
 
     def build_sia_dc09_message(self, event_code, zone, message):
         """
-        Baut eine gültige SIA DC-09 Nachricht (ohne Verschlüsselung, L0).
+        Baut eine vollständig SIA DC-09-konforme Nachricht mit Längenangabe und \r\n.
         """
-        # Nachricht im Format [CodeZone|Text], z. B. [BA0001|Alarm ausgelöst]
+        # Nutzlast z. B. [BA0001|Text]
         payload = f"[{event_code}{zone:04d}|{message}]"
+        body = f"#{self.account_code}{payload}"
 
-        # SIA-Kopf: #Account[...]
-        full_body = f"#{self.account_code}{payload}"
+        # Länge ab dem # bis zum Ende des Payloads
+        body_length = len(body)
 
-        # Länge des Nachrichtenkörpers berechnen (alles nach "SIA-DCS")
-        length = len(full_body)
+        # Nachricht: Protokollkopf + Body
+        sia_core = f'"SIA-DCS"{body_length:04d}L0{body}\r\n'
 
-        # Final: "SIA-DCS"0039L0#account[code|message]
-        sia_message = f'"SIA-DCS"{length:04d}L0{full_body}'
-
-        return sia_message + "\r\n"
+        # Jetzt die Gesamtlänge berechnen (inkl. obigem \r\n)
+        total_length = len(sia_core)
+        return f"{total_length:04d}{sia_core}"
 
     async def send_sia_message(self, event_code, account_code, message):
         """
         Send SIA DC-09 message.
         """
-        # Zone kann optional konfigurierbar gemacht werden – aktuell: 1
         sia_message = self.build_sia_dc09_message(event_code, zone=1, message=message)
 
         try:
