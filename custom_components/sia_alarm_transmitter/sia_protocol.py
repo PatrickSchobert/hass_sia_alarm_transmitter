@@ -51,7 +51,7 @@ class SIAProtocolHandler:
         # Final: "SIA-DCS"0039L0#account[code|message]
         sia_message = f'"SIA-DCS"{length:04d}L0{full_body}'
 
-        return sia_message
+        return sia_message + "\r\n"
 
     async def send_sia_message(self, event_code, account_code, message):
         """
