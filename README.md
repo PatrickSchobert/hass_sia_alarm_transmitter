@@ -1,4 +1,5 @@
 # SIA Alarm Transmitter for Home Assistant
+CUSTOM
 
 ## Features
 - Enable transmssion of event by Home assistant to an Alarm supervision system using the SIA protocol.
