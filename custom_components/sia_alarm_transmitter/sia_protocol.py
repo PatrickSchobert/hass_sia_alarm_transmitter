@@ -35,23 +35,31 @@ class SIAProtocolHandler:
         self.subscriber_id = subscriber_id
         self.account_code = account_code
 
+    def build_sia_dc09_message(self, event_code, zone, message):
+        """
+        Baut eine gültige SIA DC-09 Nachricht (ohne Verschlüsselung, L0).
+        """
+        # Nachricht im Format [CodeZone|Text], z. B. [BA0001|Alarm ausgelöst]
+        payload = f"[{event_code}{zone:04d}|{message}]"
+
+        # SIA-Kopf: #Account[...]
+        full_body = f"#{self.account_code}{payload}"
+
+        # Länge des Nachrichtenkörpers berechnen (alles nach "SIA-DCS")
+        length = len(full_body)
+
+        # Final: "SIA-DCS"0039L0#account[code|message]
+        sia_message = f'"SIA-DCS"{length:04d}L0{full_body}'
+
+        return sia_message
+
     async def send_sia_message(self, event_code, account_code, message):
         """
-        Send SIA message with TLS parameters.
+        Send SIA DC-09 message.
         """
-        # Construct full SIA message with protocol and TLS specifics
-        sia_message_parts = [
-            f"[{self.protocol_number}",     # Protocol number
-            f"01{len(message):02d}{event_code}0]",  # Standard SIA header
-            f"R{self.station_id}",          # Station/Receiver ID
-            f"S{self.subscriber_id}",       # Subscriber ID
-            f"{self.account_code}",              # Account code
-            f"{message}"                    # Message content
-        ]
-        
-        sia_message = ''.join(sia_message_parts)
-        
-        # Existing failover logic
+        # Zone kann optional konfigurierbar gemacht werden – aktuell: 1
+        sia_message = self.build_sia_dc09_message(event_code, zone=1, message=message)
+
         try:
             return await self._send_to_host(
                 self.primary_host, 
@@ -88,6 +96,7 @@ class SIAProtocolHandler:
                 await writer.wait_closed()
                 
                 LOGGER.info(f"SIA message sent to {host}:{port}")
+                LOGGER.debug(f"Sent message: {message}")
                 return True
             
             except (socket.error, asyncio.TimeoutError) as err:
