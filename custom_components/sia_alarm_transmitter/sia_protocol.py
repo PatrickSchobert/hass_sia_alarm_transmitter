@@ -1,106 +1,42 @@
-"""Enhanced SIA Protocol Communication Handler with TLS Parameters."""
 import logging
 import asyncio
-import socket
+from homeassistant.core import HomeAssistant, ServiceCall
 
-LOGGER = logging.getLogger(__name__)
+_LOGGER = logging.getLogger(__name__)
 
-class SIAProtocolHandler:
-    """Handles SIA protocol communication with TLS parameters."""
-    def __init__(self, 
-                 primary_host, 
-                 primary_port=5051, 
-                 backup_host=None, 
-                 backup_port=5051, 
-                 timeout=10, 
-                 retry_attempts=2,
-                 protocol_number='6678',
-                 station_id='0000',
-                 subscriber_id='0000',
-                 account_code='1234556'):
-        """
-        Initialize SIA protocol handler with TLS parameters.
-        
-        :param station_id: 4-digit station/receiver identifier
-        :param subscriber_id: 4-digit subscriber/customer identifier
-        """
-        self.primary_host = primary_host
-        self.primary_port = primary_port
-        self.backup_host = backup_host
-        self.backup_port = backup_port
-        self.timeout = timeout
-        self.retry_attempts = retry_attempts
-        self.protocol_number = protocol_number
-        self.station_id = station_id
-        self.subscriber_id = subscriber_id
-        self.account_code = account_code
+async def async_setup_send_event_service(hass: HomeAssistant):
+    """Register the send_event service for SIA Alarm Transmitter."""
 
-    def build_sia_dc09_message(self, event_code, zone, message):
-        """
-        Baut eine vollständig SIA DC-09-konforme Nachricht mit Längenangabe und \r\n.
-        """
-        # Nutzlast z. B. [BA0001|Text]
-        payload = f"[{event_code}{zone:04d}|{message}]"
-        body = f"#{self.account_code}{payload}"
+    async def handle_send_event(call: ServiceCall):
+        account_id = call.data.get("account_id")
+        event_code = call.data.get("code", "BA")
+        zone = call.data.get("zone", 1)
+        area = call.data.get("area", 1)
+        message = call.data.get("message", "SIA Event")
 
-        # Länge ab dem # bis zum Ende des Payloads
-        body_length = len(body)
+        # Build the SIA DC-09 message (MSD-compatible with STX/ETX framing)
+        payload = f"[{event_code}{int(zone):04d}|{message}]"
+        body = f"#{account_id}{payload}"
+        length = len(body)
+        sia_core = f'"SIA-DCS"{length:04d}L0{body}\r\n'
+        sia_message = f"\x02{sia_core}\x03"
 
-        # Nachricht: Protokollkopf + Body
-        sia_core = f'"SIA-DCS"{body_length:04d}L0{body}\r\n'
+        # Optional Logging
+        _LOGGER.info("SIA-Nachricht (framed): %s", repr(sia_message))
 
-        # Jetzt die Gesamtlänge berechnen (inkl. obigem \r\n)
-        total_length = len(sia_core)
-        return f"{total_length:04d}{sia_core}"
-
-    async def send_sia_message(self, event_code, account_code, message):
-        """
-        Send SIA DC-09 message.
-        """
-        sia_message = self.build_sia_dc09_message(event_code, zone=1, message=message)
-
+        # Send via TCP (make sure target host/port is configured or fixed here)
         try:
-            return await self._send_to_host(
-                self.primary_host, 
-                self.primary_port, 
-                sia_message
-            )
-        except Exception as primary_error:
-            LOGGER.warning(f"Primary host failed: {primary_error}")
-            
-            if self.backup_host:
-                try:
-                    return await self._send_to_host(
-                        self.backup_host, 
-                        self.backup_port, 
-                        sia_message
-                    )
-                except Exception as backup_error:
-                    LOGGER.error(f"Backup host also failed: {backup_error}")
-            
-            return False
+            reader, writer = await asyncio.open_connection("127.0.0.1", 5000)
+            writer.write(sia_message.encode())
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
+            _LOGGER.info("SIA-Nachricht erfolgreich gesendet.")
+        except Exception as e:
+            _LOGGER.error("Fehler beim Senden der SIA-Nachricht: %s", e)
 
-    async def _send_to_host(self, host, port, message):
-        """Low-level message transmission with retry mechanism."""
-        for attempt in range(self.retry_attempts + 1):
-            try:
-                reader, writer = await asyncio.wait_for(
-                    asyncio.open_connection(host, port), 
-                    timeout=self.timeout
-                )
-                
-                writer.write(message.encode())
-                await writer.drain()
-                writer.close()
-                await writer.wait_closed()
-                
-                LOGGER.info(f"SIA message sent to {host}:{port}")
-                LOGGER.debug(f"Sent message: {message}")
-                return True
-            
-            except (socket.error, asyncio.TimeoutError) as err:
-                if attempt < self.retry_attempts:
-                    LOGGER.warning(f"Transmission attempt {attempt + 1} failed: {err}")
-                    await asyncio.sleep(1)
-                else:
-                    raise
+    hass.services.async_register(
+        "sia_alarm_transmitter",
+        "send_event",
+        handle_send_event
+    )
